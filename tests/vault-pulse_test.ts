@@ -30,7 +30,7 @@ Clarinet.test({
 });
 
 Clarinet.test({
-  name: "Ensure can add asset to vault",
+  name: "Ensure can add and transfer assets",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const wallet_1 = accounts.get("wallet_1")!;
     
@@ -38,7 +38,13 @@ Clarinet.test({
       Tx.contractCall(
         "vault-pulse",
         "create-vault",
-        [types.ascii("My First Vault")],
+        [types.ascii("Vault 1")],
+        wallet_1.address
+      ),
+      Tx.contractCall(
+        "vault-pulse",
+        "create-vault",
+        [types.ascii("Vault 2")],
         wallet_1.address
       ),
       Tx.contractCall(
@@ -46,12 +52,16 @@ Clarinet.test({
         "add-asset",
         [types.uint(1), types.ascii("Gold"), types.uint(100)],
         wallet_1.address
+      ),
+      Tx.contractCall(
+        "vault-pulse",
+        "transfer-asset",
+        [types.uint(1), types.uint(1), types.uint(2)],
+        wallet_1.address
       )
     ]);
     
-    assertEquals(block.receipts.length, 2);
-    block.receipts[1].result
-      .expectOk()
-      .expectUint(1);
+    assertEquals(block.receipts.length, 4);
+    block.receipts[3].result.expectOk().expectBool(true);
   },
 });
